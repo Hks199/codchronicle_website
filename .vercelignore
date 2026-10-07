@@ -1,4 +1,4 @@
-# Credentials are configured in Vercel's environment variable settings.
+# Local .env files stay excluded. Server-only mail-settings.mjs is deployed.
 .env
 .env.*
 !.env.example

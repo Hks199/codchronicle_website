@@ -19,6 +19,33 @@ const config = {
   contactTo: "owner@example.net",
   careersTo: "careers@example.net",
 };
+
+test("code mail configuration works without deployment SMTP variables and supports environment mode", () => {
+  const defaults = {
+    SMTP_HOST: "smtp.example.net",
+    SMTP_USER: "website@example.net",
+    SMTP_PASS: "test-password",
+    MAIL_TO: "owner@example.net",
+  };
+  const fallback = mailConfiguration(
+    {
+      VERCEL: "1",
+      VERCEL_URL: "example.vercel.app",
+      SMTP_HOST: "incorrect.invalid",
+    },
+    defaults,
+  );
+  assert.deepEqual(fallback.issues, []);
+  assert.equal(fallback.config.contactTo, "owner@example.net");
+  assert.equal(fallback.transport.options.host, "smtp.example.net");
+  fallback.transport.close();
+  const environmentOnly = mailConfiguration(
+    { SMTP_CONFIG_SOURCE: "environment" },
+    defaults,
+  );
+  assert.equal(environmentOnly.transport, null);
+  assert.ok(environmentOnly.issues.includes("SMTP_HOST is missing"));
+});
 async function close(server) {
   await new Promise((resolve) => server.close(resolve));
 }

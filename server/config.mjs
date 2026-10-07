@@ -1,7 +1,11 @@
 import "dotenv/config";
 import nodemailer from "nodemailer";
+import mailSettings from "./mail-settings.mjs";
 
-export function mailConfiguration(env = process.env) {
+export function mailConfiguration(env = process.env, defaults = mailSettings) {
+  // Explicit code configuration takes priority unless environment mode is selected.
+  // Keep credentials confined to the backend, never to VITE_* variables.
+  if (env.SMTP_CONFIG_SOURCE !== "environment") env = { ...env, ...defaults };
   const host = env.SMTP_HOST?.trim();
   const user = env.SMTP_USER?.trim();
   const secureSetting = env.SMTP_SECURE?.trim() || "false";
@@ -16,6 +20,22 @@ export function mailConfiguration(env = process.env) {
   if (!["true", "false"].includes(secureSetting))
     issues.push("SMTP_SECURE must be true or false");
   const configured = issues.length === 0;
+  const from = env.MAIL_FROM?.trim() || user;
+  const contactTo = env.CONTACT_MAIL_TO?.trim() || env.MAIL_TO?.trim();
+  const careersTo = env.CAREERS_MAIL_TO?.trim() || env.MAIL_TO?.trim();
+  const emailPattern = /^[^\s@<>\r\n]+@[^\s@<>\r\n]+\.[^\s@<>\r\n]+$/;
+  if (!emailPattern.test(from || ""))
+    issues.push(
+      "MAIL_FROM (or SMTP_USER) must be a plain sender email address",
+    );
+  if (!emailPattern.test(contactTo || ""))
+    issues.push(
+      "MAIL_TO (or CONTACT_MAIL_TO) is missing or is not a plain email address",
+    );
+  if (!emailPattern.test(careersTo || ""))
+    issues.push(
+      "MAIL_TO (or CAREERS_MAIL_TO) is missing or is not a plain email address",
+    );
   const onVercel = env.VERCEL === "1";
   const origins = (env.ALLOWED_ORIGINS || env.VITE_SITE_URL || "")
     .split(",")
@@ -55,9 +75,9 @@ export function mailConfiguration(env = process.env) {
         })
       : null,
     config: {
-      from: env.MAIL_FROM?.trim() || user,
-      contactTo: env.CONTACT_MAIL_TO?.trim() || env.MAIL_TO?.trim(),
-      careersTo: env.CAREERS_MAIL_TO?.trim() || env.MAIL_TO?.trim(),
+      from,
+      contactTo,
+      careersTo,
       production: onVercel || env.NODE_ENV === "production",
       origins: [...new Set(origins)],
       // Vercel overwrites X-Forwarded-For with the original client IP.

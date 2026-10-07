@@ -2,6 +2,14 @@
 
 The frontend is served from `dist`; `/api/contact` and `/api/careers` run as Node.js functions using the existing SMTP code. No separate backend host is required.
 
+## Current mail configuration: server-side code
+
+At the owner's explicit request, working mail values are now stored in `server/mail-settings.mjs`. Include that file in the deployed source. It is imported only by the backend functions and is not served as a frontend asset. These code values take priority over SMTP environment variables, so email delivery can run without adding the SMTP settings in Vercel.
+
+This file contains a password readable by anyone with source/repository access. Keep the repository private. The previously shared App Password must be regenerated; replace `SMTP_PASS` in this file with the new password before deployment. Changing a password only in `.env` will not update the code configuration.
+
+To return to environment configuration, set `SMTP_CONFIG_SOURCE=environment`, add the variables below in Vercel, remove credentials from the code file and redeploy. The remainder of this guide describes environment mode; public `VITE_*` values still use Vercel environment settings in either mode.
+
 ## Import the project
 
 1. Push this project to your Git repository, including `api`, `server`, `vercel.json`, `package.json` and `package-lock.json`. Keep `.env` out of Git.
@@ -44,6 +52,14 @@ The resume limit is 4 MB on both frontend and backend, leaving room for multipar
 SMTP delivery completes before the API returns success. Each function is configured for a maximum duration of 60 seconds. The existing in-memory rate limit applies per warm function instance; serverless scaling and cold starts mean it is not a global five-submission limit. Use Vercel Firewall rate limiting or a shared store if you need a deployment-wide limit.
 
 ## Verify the deployment
+
+### If the form says "Email delivery is not configured yet"
+
+That message means the function's SMTP connection settings or sender/recipient are missing or invalid. It occurs before SMTP authentication. Your local `.env` is excluded from deployment; setting it locally does not configure Vercel.
+
+Open **Project → Settings → Environment Variables** and add `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, and `MAIL_TO` using the working values from your local `.env`. Select **Production** for your live site, and **Preview** if you use a preview deployment URL. Paste values only, without surrounding quotes, `KEY=` prefixes or line breaks. Optional `CONTACT_MAIL_TO` and `CAREERS_MAIL_TO` can remain unset.
+
+Then create a new deployment using the latest source. Environment changes do not update an existing deployment. On the updated version, open **Logs**, submit the form and look for `Email configuration unavailable`; the log names missing or invalid settings without exposing their values. If a setting was already added, verify its environment scope and any Preview branch restriction.
 
 Before pushing dependency changes, run `npm ci` and `npm run build` locally. Commit `package.json` and `package-lock.json` together. An incomplete or out-of-sync lockfile causes Vercel's `npm ci` installation to stop before the build starts.
 

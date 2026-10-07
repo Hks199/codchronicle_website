@@ -43,6 +43,8 @@ Unconfigured or invalid footer/contact social links are hidden. The floating Wha
 
 ## SMTP credentials and forms
 
+Mail settings currently come from the server-only `server/mail-settings.mjs` file, added at the owner's explicit request. These code values take priority over environment mail settings. The file contains credentials and must stay in a private repository; rotate any exposed App Password. To use the environment instructions below instead, set `SMTP_CONFIG_SOURCE=environment`. Public website settings still use `VITE_*` variables.
+
 Fill in these server-only placeholders in `.env`:
 
 | Variable        | Value to provide                                            |

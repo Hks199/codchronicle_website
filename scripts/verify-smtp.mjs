@@ -1,10 +1,11 @@
 import { mailConfiguration } from "../server/config.mjs";
 const { transport, issues } = mailConfiguration();
-if (!transport) {
+if (!transport || issues.length) {
   console.error(
-    `Email configuration unavailable: ${issues.join("; ")}. Update .env and try again.`,
+    `Email configuration unavailable: ${issues.join("; ")}. Update server/mail-settings.mjs (or .env in environment mode) and try again.`,
   );
   process.exitCode = 1;
+  transport?.close();
 } else {
   try {
     await transport.verify();
