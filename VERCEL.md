@@ -45,6 +45,8 @@ SMTP delivery completes before the API returns success. Each function is configu
 
 ## Verify the deployment
 
+Before pushing dependency changes, run `npm ci` and `npm run build` locally. Commit `package.json` and `package-lock.json` together. An incomplete or out-of-sync lockfile causes Vercel's `npm ci` installation to stop before the build starts.
+
 - Open `/contact` and `/careers` directly, then refresh each page.
 - Submit an inquiry and a valid resume below 4 MB; confirm both emails arrive.
 - Check **Vercel → Logs** if submission fails. No credentials or form contents are logged by the application.
