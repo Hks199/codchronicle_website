@@ -1,0 +1,5 @@
+Tool: built-in image_gen (background-extraction, transparent_background=true)
+Input: public/codechronicle__logo.png
+Output: public/codechronicle__logo-transparent.png
+
+Use case: background-extraction. Precisely isolate the blue CodeChronicle logo from this edit target. The final foreground must contain EXACTLY FOUR clean connected elements: the large outer curved C, the inner curved C, the upper circular dot and the lower circular dot. Completely delete the white/gray checkerboard and any isolated flecks, dots, fragments, edge halo or speckle beyond those four shapes. All open areas and holes are fully transparent alpha=0. Smooth clean crisp antialiased contours. Preserve the existing rounded geometry, relative sizes, placement and blue color. No cyan outline, glow, texture noise, stray pixels, added shadows, text, or design changes. Transparent PNG website logo.
