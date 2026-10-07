@@ -4,7 +4,7 @@ A responsive company website built from GUIDE.md using React, TypeScript and Vit
 
 ## Run locally
 
-Requires Node.js 22.12+ (or a supported newer release).
+Use Node.js 24.x, matching the configured Vercel runtime.
 
 ```sh
 npm install
@@ -63,13 +63,15 @@ After adding credentials, restart the server and run `npm run smtp:verify`. This
 
 For Gmail, set `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587`, `SMTP_SECURE=false`, and use the full Gmail or Google Workspace email address as `SMTP_USER`. Set `SMTP_PASS` to a [Google App Password](https://support.google.com/mail/answer/185833), with grouping spaces removed. The App Password must belong to that login account.
 
-`StaticForm.tsx` posts to `/api/contact` and `/api/careers`. The server validates fields, resume content type and the 5 MB upload limit. Resumes are processed in memory and emailed as attachments. The sender and recipients come exclusively from server configuration; Reply-To uses the visitor's validated email. No submissions or uploads are saved by the application; email copies remain in the mailbox/provider. Failed submissions preserve inputs and display an error. Missing SMTP settings report unavailable instead of claiming success.
+`StaticForm.tsx` posts to `/api/contact` and `/api/careers`. The server validates fields, resume content type and the 4 MB upload limit. Resumes are processed in memory and emailed as attachments. The sender and recipients come exclusively from server configuration; Reply-To uses the visitor's validated email. No submissions or uploads are saved by the application; email copies remain in the mailbox/provider. Failed submissions preserve inputs and display an error. Missing SMTP settings report unavailable instead of claiming success.
 
 Each IP is limited to five submissions across both forms per 15 minutes. This limit is held in memory for one server process and resets on restart. Set `TRUST_PROXY` to the known proxy hop count only when deployed behind a trusted reverse proxy. `ALLOWED_ORIGINS` accepts comma-separated website origins and defaults to `VITE_SITE_URL`; development also permits localhost. Publish over HTTPS.
 
 `npm run test:mail` uses a local SMTP server to test delivery, recipient routing, Reply-To, resume attachments, invalid uploads, rate limiting and failure responses. It requires no real credentials and sends no external emails.
 
 ## SEO and deployment
+
+For Vercel, follow [VERCEL.md](./VERCEL.md). The repository includes frontend build settings, page routing and Node function entrypoints for both email forms. Vercel does not run `npm start` for this setup.
 
 Set the real `VITE_SITE_URL` and company name before publication. `SEO.tsx` supplies unique route metadata and Organization, WebSite, BreadcrumbList, Service and FAQPage structured data. `npm run build` generates static route HTML metadata for social crawlers, plus sitemap and robots files. The Node server supplies the email APIs at runtime.
 

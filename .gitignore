@@ -3,6 +3,7 @@ dist/
 .env
 .env.local
 test-results/
+.vercel/
 
 .env.*
 !.env.example

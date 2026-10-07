@@ -1,0 +1,10 @@
+# Credentials are configured in Vercel's environment variable settings.
+.env
+.env.*
+!.env.example
+node_modules
+dist
+test-results
+server/*.test.mjs
+.git
+.vercel

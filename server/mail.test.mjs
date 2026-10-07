@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { SMTPServer } from "smtp-server";
 import nodemailer from "nodemailer";
 import { createApp } from "./app.mjs";
+import { mailConfiguration } from "./config.mjs";
 
 const inquiry = {
   name: "Test Visitor",
@@ -90,7 +91,7 @@ test("SMTP submissions, attachment delivery, validation and failures", async () 
     assert.deepEqual(received[1].recipients, ["careers@example.net"]);
     assert.match(received[1].raw, /filename=resume.pdf/);
     assert.ok(received[1].raw.includes(Buffer.from(pdf).toString("base64")));
-    assert.equal((await career(Buffer.alloc(5 * 1024 * 1024 + 1))).status, 400);
+    assert.equal((await career(Buffer.alloc(4 * 1024 * 1024 + 1))).status, 400);
     assert.equal(received.length, 2);
     assert.equal(
       (await contact({ ...inquiry, service: "Invalid service" })).status,
@@ -198,6 +199,53 @@ test("disallowed browser origins are rejected", async () => {
       ).status,
       403,
     );
+  } finally {
+    await close(listener);
+  }
+});
+
+test("Vercel allows only configured custom and project deployment origins", async () => {
+  const { config: hosted } = mailConfiguration({
+    VERCEL: "1",
+    NODE_ENV: "development",
+    ALLOWED_ORIGINS: "https://codechronicle.in,https://www.codechronicle.in/",
+    VERCEL_URL: "chronicle-deployment.vercel.app",
+    VERCEL_BRANCH_URL: "chronicle-git-main.vercel.app",
+    VERCEL_PROJECT_PRODUCTION_URL: "chronicle.vercel.app",
+  });
+  assert.equal(hosted.production, true);
+  assert.equal(hosted.trustProxy, 1);
+  const listener = createApp({
+    transport: null,
+    config: hosted,
+    serveStatic: false,
+  }).listen();
+  await new Promise((resolve) => listener.on("listening", resolve));
+  try {
+    for (const origin of hosted.origins) {
+      const response = await fetch(
+        `http://127.0.0.1:${listener.address().port}/api/contact`,
+        {
+          method: "POST",
+          headers: { Origin: origin, "X-Forwarded-For": "192.0.2.1" },
+        },
+      );
+      assert.equal(
+        response.status,
+        503,
+        `${origin} should reach the configured endpoint`,
+      );
+    }
+    for (const origin of [
+      "https://unrelated.vercel.app",
+      "http://localhost:5173",
+    ]) {
+      const response = await fetch(
+        `http://127.0.0.1:${listener.address().port}/api/contact`,
+        { method: "POST", headers: { Origin: origin } },
+      );
+      assert.equal(response.status, 403);
+    }
   } finally {
     await close(listener);
   }

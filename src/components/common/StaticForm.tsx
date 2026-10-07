@@ -38,8 +38,8 @@ export default function StaticForm({
         if (f.required && (!(raw instanceof File) || !raw.name))
           next[f.name] = "Please select your resume.";
         if (raw instanceof File && raw.name) {
-          if (raw.size > 5 * 1024 * 1024)
-            next[f.name] = "Please select a file smaller than 5 MB.";
+          if (raw.size > 4 * 1024 * 1024)
+            next[f.name] = "Please select a file smaller than 4 MB.";
           if (!/\.(pdf|doc|docx)$/i.test(raw.name))
             next[f.name] = "Please select a PDF, DOC or DOCX file.";
         }
@@ -210,7 +210,7 @@ export default function StaticForm({
               <small id={`${kind}-file-note`}>
                 {filename
                   ? `Selected: ${filename}`
-                  : "PDF, DOC or DOCX · Maximum 5 MB · Sent as an email attachment"}
+                  : "PDF, DOC or DOCX · Maximum 4 MB · Sent as an email attachment"}
               </small>
             )}
             {errors[f.name] && (

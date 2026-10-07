@@ -16,6 +16,28 @@ export function mailConfiguration(env = process.env) {
   if (!["true", "false"].includes(secureSetting))
     issues.push("SMTP_SECURE must be true or false");
   const configured = issues.length === 0;
+  const onVercel = env.VERCEL === "1";
+  const origins = (env.ALLOWED_ORIGINS || env.VITE_SITE_URL || "")
+    .split(",")
+    .map((value) => value.trim().replace(/\/$/, ""))
+    .filter(Boolean);
+  if (onVercel) {
+    for (const key of [
+      "VERCEL_URL",
+      "VERCEL_BRANCH_URL",
+      "VERCEL_PROJECT_PRODUCTION_URL",
+    ]) {
+      const hostname = env[key]?.trim();
+      if (hostname) {
+        try {
+          const url = new URL(`https://${hostname}`);
+          if (url.hostname === hostname) origins.push(url.origin);
+        } catch {
+          /* Invalid deployment URLs are not allowed. */
+        }
+      }
+    }
+  }
   return {
     issues,
     transport: configured
@@ -36,12 +58,14 @@ export function mailConfiguration(env = process.env) {
       from: env.MAIL_FROM?.trim() || user,
       contactTo: env.CONTACT_MAIL_TO?.trim() || env.MAIL_TO?.trim(),
       careersTo: env.CAREERS_MAIL_TO?.trim() || env.MAIL_TO?.trim(),
-      production: env.NODE_ENV === "production",
-      origins: (env.ALLOWED_ORIGINS || env.VITE_SITE_URL || "")
-        .split(",")
-        .map((value) => value.trim().replace(/\/$/, ""))
-        .filter(Boolean),
-      trustProxy: env.TRUST_PROXY ? Number(env.TRUST_PROXY) : undefined,
+      production: onVercel || env.NODE_ENV === "production",
+      origins: [...new Set(origins)],
+      // Vercel overwrites X-Forwarded-For with the original client IP.
+      trustProxy: onVercel
+        ? 1
+        : env.TRUST_PROXY
+          ? Number(env.TRUST_PROXY)
+          : undefined,
     },
   };
 }

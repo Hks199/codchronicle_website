@@ -59,7 +59,7 @@ export function createApp({ transport, config = {}, serveStatic = true }) {
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 5 * 1024 * 1024,
+      fileSize: 4 * 1024 * 1024,
       files: 1,
       fields: 8,
       fieldSize: 8192,
@@ -255,7 +255,7 @@ export function createApp({ transport, config = {}, serveStatic = true }) {
           errors: {
             resume:
               error.code === "LIMIT_FILE_SIZE"
-                ? "Maximum resume size is 5 MB."
+                ? "Maximum resume size is 4 MB."
                 : "Upload one resume file only.",
           },
         });
